@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "distributed-pytorch-cnn-example"
+version = "0.1.0"
+description = "An example of using PyTorch on Iridis."
+readme = "README.md"
+authors = [
+    {name = "Corran Webster", email="C.J.Webster@soton.ac.uk"},
+]
+maintainers = [
+    {name = "Southampton Research Software Group"},
+]
+
+requires-python = ">= 3.13"
+dependencies = [
+    "accelerate",
+    "click",
+    "torch",
+    "torchvision",
+    "typing_extensions",  # undeclared torch dependency on CUDA?
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "isort",
+    "flake8",
+]
+
+[project.scripts]
+"simple-cnn" = "simple_cnn.cli:cli"

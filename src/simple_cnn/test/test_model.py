@@ -19,7 +19,7 @@ class TestSimpleCNN(TestCase):
         mnist = load_mnist_data(data_directory, None, train)
         yield mnist
 
-    def test_train_test(self):
+    def test_train_epoch_and_test(self):
         """Basic testing of training and running the SimpleCNN model"""
         accelerator = Accelerator()
 
@@ -45,14 +45,14 @@ class TestSimpleCNN(TestCase):
                 )
 
                 train_epoch(
-                    model, accelerator, training_loader, optimizer, epoch=1, dry_run=True
+                    model, accelerator, training_loader, optimizer, epoch=1,
                 )
 
                 test(model, test_loader)
 
                 save(accelerator, 1, checkpoint_directory)
-                epoch = load(
-                    model, sorted(checkpoint_directory.glob("SimpleCNN_*.pt"))[-1]
-                )
+                checkpoints = sorted(checkpoint_directory.glob("SimpleCNN_*"))
+                self.assertNotEqual(checkpoints, [])
+                epoch = load(accelerator, checkpoints[-1])
 
                 self.assertEqual(epoch, 1)

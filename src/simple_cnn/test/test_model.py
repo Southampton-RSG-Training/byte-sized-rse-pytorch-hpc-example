@@ -3,6 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
+from accelerate import Accelerator, logging
 import torch
 from torch.optim import Adadelta
 from torch.utils.data import DataLoader
@@ -19,10 +20,12 @@ class TestSimpleCNN(TestCase):
         yield mnist
 
     def test_train_test(self):
-        """Basic testing of running the SimpleCNN model"""
+        """Basic testing of training and running the SimpleCNN model"""
+        accelerator = Accelerator()
+
         model = SimpleCNN()
-        device = torch.device("cpu")
-        model.to(device)
+        # device = torch.device("cpu")
+        # model.to(device)
         optimizer = Adadelta(model.parameters())
 
         with TemporaryDirectory() as tmpdir:
@@ -34,14 +37,18 @@ class TestSimpleCNN(TestCase):
                 training_data = load_mnist_data(data_directory, None)
                 training_loader = DataLoader(training_data, batch_size=64)
 
-                train_epoch(
-                    model, device, training_loader, optimizer, epoch=1, dry_run=True
-                )
-
                 test_data = load_mnist_data(data_directory, None)
                 test_loader = DataLoader(test_data, batch_size=32)
 
-                test(model, device, test_loader)
+                model, optimizer, training_loader, test_loader = accelerator.prepare(
+                    model, optimizer, training_loader, test_loader
+                )
+
+                train_epoch(
+                    model, accelerator, training_loader, optimizer, epoch=1, dry_run=True
+                )
+
+                test(model, test_loader)
 
                 save(model, 1, checkpoint_directory)
                 epoch = load(

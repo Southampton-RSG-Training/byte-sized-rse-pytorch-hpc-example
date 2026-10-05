@@ -3,7 +3,6 @@
 #SBATCH --job-name=simple-cnn-example
 #SBATCH --partition=a100
 #SBATCH --time=00:05:00
-#SBATCH --nodes=1
 #SBATCH --nodes=1                         # Number of Nodes (max=1)
 #SBATCH --gpus=2                          # GPUs per Node (max=8)
 #SBATCH --ntasks=1                        # Number of Nodes x GPUs per Node
@@ -24,7 +23,8 @@ echo "Number of GPUs: $SLURM_GPUS_PER_TASK"
 
 # Load required modules
 module purge
-module load python/3.14
+module load python
+module load cuda
 
 # Activate Python virtual environment
 source $VENV_NAME/bin/activate

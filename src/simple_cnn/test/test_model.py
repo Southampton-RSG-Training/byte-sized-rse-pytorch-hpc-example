@@ -50,7 +50,7 @@ class TestSimpleCNN(TestCase):
 
                 test(model, test_loader)
 
-                save(model, 1, checkpoint_directory)
+                save(accelerator, 1, checkpoint_directory)
                 epoch = load(
                     model, sorted(checkpoint_directory.glob("SimpleCNN_*.pt"))[-1]
                 )

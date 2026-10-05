@@ -140,7 +140,7 @@ def train(
         # try to resume if there are any checkpoints
         checkpoints = sorted(checkpoint_dir.glob("SimpleCNN_*"))
         if checkpoints:
-            start = load(accelerator, last_checkpoint[-1]) + 1
+            start = load(accelerator, checkpoints[-1]) + 1
         else:
             start = 1
 

@@ -5,6 +5,7 @@ import re
 from math import inf
 
 from accelerate import Accelerator, logging
+import evaluate
 import torch
 from torch import flatten, no_grad
 from torch.nn import Module, Conv2d, Dropout, Linear
@@ -64,13 +65,14 @@ def train_epoch(
         optimizer.step()
         if batch_idx % log_interval == 0:
             logger.info(
-                "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
+                "Train Epoch: {} [{}/{} ({:.0%})]\tLoss: {:.6f}".format(
                     epoch,
                     batch_idx * len(data),
-                    len(train_loader.dataset),
-                    100.0 * batch_idx / len(train_loader),
+                    len(train_loader) * len(data),
+                    batch_idx / len(train_loader),
                     loss.item(),
-                )
+                ),
+                main_process_only=False,
             )
             if dry_run:
                 break
@@ -83,32 +85,25 @@ def predict(model, data):
         return model(data)
 
 
-def test(model, test_loader):
-    test_loss = 0
-    correct = 0
+def test(model, accelerator, test_loader):
+    metric = evaluate.load("accuracy")
     with no_grad():
         for data, target in test_loader:
             output = predict(model, data)
-            # target = target.to(device)
-            test_loss += nll_loss(
-                output, target, reduction="sum"
-            ).item()  # sum up batch loss
-            pred = output.argmax(
-                dim=1, keepdim=True
-            )  # get the index of the max log-probability
-            correct += pred.eq(target.view_as(pred)).sum().item()
+            predictions = output.argmax(dim=-1)
+            all_predictions, all_targets = accelerator.gather_for_metrics(
+                (predictions, target)
+            )
+            metric.add_batch(
+                predictions=all_predictions,
+                references=all_targets,
+            )
 
-    test_loss /= len(test_loader.dataset)
-
+    accuracy = metric.compute()['accuracy']
     logger.info(
-        "Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n".format(
-            test_loss,
-            correct,
-            len(test_loader.dataset),
-            100.0 * correct / len(test_loader.dataset),
-        )
+        "Test set: Accuracy: {}\n".format(accuracy)
     )
-    return test_loss
+    return accuracy
 
 
 def train(
@@ -148,17 +143,11 @@ def train(
         train_epoch(
             model, accelerator, train_loader, optimizer, epoch, log_interval, dry_run
         )
-        val_loss = test(model, validation_loader)
+        test(model, accelerator, validation_loader)
         scheduler.step()
-        if val_loss < best_val_loss:
-            # checkpoint if model is better than previous best
-            save(accelerator, epoch, checkpoint_dir)
-            wait = 0
-        else:
-            wait += 1
-            if wait > patience:
-                logger.info(f"Training stabilised at epoch {epoch}.")
-                break
+
+        # checkpoint
+        save(accelerator, epoch, checkpoint_dir)
 
 
 def save(accelerator, epoch, path):

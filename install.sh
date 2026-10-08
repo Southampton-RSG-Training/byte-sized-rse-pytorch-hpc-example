@@ -9,6 +9,7 @@ DATA_DIR=$WORKING_DIRECTORY/data
 # Load required modules
 module purge
 module load python/3.14
+module load cuda
 
 # create virtual environment
 python3.14 -m venv $VENV_NAME

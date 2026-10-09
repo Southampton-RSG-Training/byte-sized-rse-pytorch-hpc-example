@@ -34,6 +34,7 @@ def cli(log_dir_name):
 )
 def preprocess(data_dir_name: str):
     """Perform preprocessing commands before distributing to nodes."""
+    import evaluate
     from .data import download_mnist_data
 
     # ensure data directory exists
@@ -41,6 +42,9 @@ def preprocess(data_dir_name: str):
     data_dir.mkdir(parents=True, exist_ok=True)
 
     download_mnist_data(data_dir)
+
+    # install metrics from HuggingFace now
+    evaluate.load("accuracy")
 
 
 @cli.command()

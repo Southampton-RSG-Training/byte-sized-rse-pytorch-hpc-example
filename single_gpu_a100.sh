@@ -4,10 +4,10 @@
 #SBATCH --partition=a100
 #SBATCH --time=00:05:00
 #SBATCH --nodes=1                         # Number of Nodes (max=1)
-#SBATCH --gpus=2                          # GPUs per Node (max=8)
+#SBATCH --gpus=1                          # GPUs per Node (max=8)
 #SBATCH --ntasks=1                        # Number of Nodes x GPUs per Node
-#SBATCH --gpus-per-task=2                 # Every task to use two GPUs
-#SBATCH --cpus-per-task=2                 # Every task to use two CPUs
+#SBATCH --gpus-per-task=1                 # Every task to use two GPUs
+#SBATCH --cpus-per-task=1                 # Every task to use two CPUs
 #SBATCH --gpu-bind=none                   # NCCL can't deal with task-binding
 
 WORKING_DIRECTORY=simple_cnn_workspace
@@ -37,7 +37,7 @@ export PYTHONUNBUFFERED=1                  # Use unbuffered stdout/stderr
 cd $SLURM_SUBMIT_DIR
 
 # Run the Python script
-accelerate launch --num_processes 2 --no_python simple-cnn train --data-dir $DATA_DIR --checkpoints-dir $CHECKPOINTS_DIR --epochs=10
+accelerate launch --num_processes 1 --no_python simple-cnn train --data-dir $DATA_DIR --checkpoints-dir $CHECKPOINTS_DIR --epochs=10
 
 # deactivate virtual environment
 deactivate

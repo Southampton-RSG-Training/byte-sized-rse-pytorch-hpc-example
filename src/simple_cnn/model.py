@@ -1,17 +1,11 @@
-import datetime
-import io
-import pickle
-import re
 from math import inf
 
 from accelerate import Accelerator, logging
 import evaluate
-import torch
 from torch import flatten, no_grad
 from torch.nn import Module, Conv2d, Dropout, Linear
 from torch.nn.functional import relu, max_pool2d, log_softmax, nll_loss
 from torch.optim.lr_scheduler import StepLR
-from torch.utils.data import Dataset, random_split
 
 logger = logging.get_logger(__name__)
 
@@ -114,15 +108,10 @@ def train(
     epochs,
     checkpoint_dir,
     start=1,
-    patience=None,
     gamma=0.7,
     log_interval=10,
     dry_run=False,
 ):
-    best_val_loss = inf
-    if patience is None:
-        patience = epochs
-    wait = 0
     scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
 
     accelerator = Accelerator()

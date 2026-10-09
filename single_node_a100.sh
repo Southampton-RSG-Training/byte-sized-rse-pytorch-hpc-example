@@ -31,13 +31,13 @@ module load cuda
 source $VENV_NAME/bin/activate
 
 # Set any environment variables or configuration options
-export PYTHONUNBUFFERED=1
+export PYTHONUNBUFFERED=1                  # Use unbuffered stdout/stderr
 
 # Move to job directory
 cd $SLURM_SUBMIT_DIR
 
 # Run the Python script
-accelerate launch --num_processes 2 --no_python simple-cnn --log-dir $LOG_DIR train --data-dir $DATA_DIR --checkpoints-dir $CHECKPOINTS_DIR --epochs=2
+accelerate launch --num_processes 2 --no_python simple-cnn --log-dir $LOG_DIR train --data-dir $DATA_DIR --checkpoints-dir $CHECKPOINTS_DIR --epochs=10
 
 # deactivate virtual environment
 deactivate
